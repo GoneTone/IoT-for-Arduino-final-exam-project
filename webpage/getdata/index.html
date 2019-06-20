@@ -1,0 +1,257 @@
+<!--
+    Arduino 物聯網 IoT Demo
+
+    Developed by 張文相 (Zhang Wenxiang)
+    https://www.facebook.com/GoneToneDY
+-->
+<!--
+
+                              _oo0oo_
+                             o8888888o
+                             88" . "88
+                             (| -_- |)
+                             0\  =  /0
+                           ___/`---'\___
+                         .' \\|     |# '.
+                        / \\|||  :  |||# \
+                       / _||||| -:- |||||- \
+                      |   | \\\  -  #/ |   |
+                      | \_|  ''\---/''  |_/ |
+                      \  .-\__  '-'  ___/-. /
+                    ___'. .'  /--.--\  `. .'___
+                 ."" '<  `.___\_<|>_/___.' >' "".
+                | | :  `- \`.;`\ _ /`;.`/ - ` : | |
+                \  \ `_.   \_ __\ /__ _/   .-` /  /
+            =====`-.____`.___ \_____/___.-`___.-'=====
+                              `=---='
+
+
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+              佛祖保佑                       永無 BUG
+
+-->
+<!DOCTYPE html>
+<html lang="zh-TW" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#343A40">
+    <title>取得數據 | Arduino 物聯網 IoT Demo</title>
+    <link rel="shortcut icon" href="../favicon.ico">
+    <meta name="author" content="張文相 Zhang Wenxiang">
+    <link href="//fonts.googleapis.com/css?family=Poppins:300,500,600" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-4.2.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome-5.8.2/css/all.min.css">
+    <style>
+        body {
+            padding-top: 3.5rem;
+        }
+
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href="/">Arduino 物聯網 IoT Demo</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbars" aria-controls="navbars" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbars">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="../">首頁</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link"><i class="fas fa-angle-double-right"></i> 取得數據 <i class="fas fa-angle-double-left"></i></a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<main role="main">
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-4">取得數據 | Arduino 物聯網 IoT Demo</h1>
+            <p style="font-size: 22px;">期末 Arduino 專題製作</p>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 mb-5">
+                <p><i class="fas fa-hourglass-start"></i> 資料更新倒數</p>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="countdown" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 mb-5">
+                <h2>DHT22 溫溼度感測器</h2>
+                <p>溫度：<strong class="text-danger" id="temperature"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 讀取中...</strong> °C
+                    <br>濕度：<strong class="text-danger" id="humidity"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 讀取中...</strong> %
+            </div>
+        </div>
+        <hr>
+    </div>
+</main>
+<footer class="container">
+    <p>Copyright &copy; 2019 <a href="https://www.facebook.com/GoneToneDY">張文相 (Zhang Wenxiang)</a>. All rights
+        reserved.
+        <br>Developed by <a href="https://www.facebook.com/GoneToneDY" target="_blank">張文相 (Zhang Wenxiang)</a>.</p>
+</footer>
+<div class="modal fade" id="dataSendSyncMsg" role="dialog" aria-labelledby="dataSendSyncMsgModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dataSendSyncMsgModalLabel"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 資料同步中...</h5>
+            </div>
+            <div class="modal-body">
+                <p>系統正在同步伺服器資料，請稍等... <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="dataSendMsg" role="dialog" aria-labelledby="dataSendMsgModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dataSendMsgModalLabel"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 資料發送中...</h5>
+            </div>
+            <div class="modal-body">
+                <p>系統正在發送資料給伺服器並接收回覆，請稍等... <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="dataSendSyncFailMsg" role="dialog" aria-labelledby="dataSendSyncFailMsgModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="dataSendSyncFailMsgModalLabel"><i class="fas fa-bug"></i> 資料同步錯誤</h5>
+            </div>
+            <div class="modal-body">
+                <p>系統同步伺服器資料時發生錯誤，請稍後重試。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-outline-primary" onclick="window.location.reload();"><i class="fas fa-redo-alt"></i> 重試</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../assets/vendor/jquery-3.4.1.min.js"></script>
+<script src="../assets/vendor/bootstrap-4.2.1/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+    let requestUrl = "http://<您的 Arduino IP>:8080"; //請求網址
+
+    let seconds = 10; //倒數秒數
+
+    let modalDataSendSyncMsg = $('#dataSendSyncMsg'); //定義 modalDataSendSyncMsg
+    let modalDataSendMsg = $('#dataSendMsg'); //定義 modalDataSendMsg
+    let modalDataSendSyncFailMsg = $('#dataSendSyncFailMsg'); //定義 modalDataSendSyncFailMsg
+
+    let temperature = $('#temperature'); //定義 temperature
+    let humidity = $('#humidity'); //定義 humidity
+
+    /* 頁面載入後請求一次資料進行同步 */
+    $(document).ready(function() {
+        modalDataSendSyncMsg.modal('show'); //顯示資料發送中
+
+        $.ajax({
+            type: "GET", //傳送方式
+            url: requestUrl, //傳送目的地
+            dataType: "json", //資料格式
+            timeout: 10000, //超時
+            data: { //傳送資料
+                controlName: "sensorData",
+                parameter: 1
+            },
+            success: function(data) {
+                /* 溫溼度感測器 */
+                if (data.dht22.temperature !== "unknown") {
+                    temperature.removeClass("text-danger").addClass("text-success").text(data.dht22.temperature);
+                }
+                if (data.dht22.humidity !== "unknown") {
+                    humidity.removeClass("text-danger").addClass("text-success").text(data.dht22.humidity);
+                }
+
+                modalDataSendSyncMsg.modal('hide'); //關閉顯示資料發送中
+
+                countdown(seconds); //倒數計時
+                setInterval(getSensorData, (seconds + 1) * 1000); //依照定義間隔秒數重複請求資料進行同步
+            },
+            error: function(jqXHR) {
+                modalDataSendSyncMsg.modal('hide'); //關閉顯示資料發送中
+                setTimeout(function() {
+                    modalDataSendSyncFailMsg.find('.modal-body').html('<p>系統同步伺服器資料時發生錯誤，請稍後重試。<br>' + jqXHR.status + ' ' + jqXHR.statusText + '</p>');
+                    modalDataSendSyncFailMsg.modal('show'); //顯示資料同步錯誤
+                }, 500);
+            }
+        })
+    });
+
+    /* 重複請求資料進行同步 */
+    function getSensorData() {
+        countdown(seconds); //倒數計時
+
+        modalDataSendMsg.modal('show'); //顯示資料發送中
+
+        $.ajax({
+            type: "GET", //傳送方式
+            url: requestUrl, //傳送目的地
+            dataType: "json", //資料格式
+            timeout: 10000, //超時
+            data: { //傳送資料
+                controlName: "sensorData",
+                parameter: 1
+            },
+            success: function(data) {
+                /* 溫溼度感測器 */
+                if (data.dht22.temperature !== "unknown") {
+                    temperature.removeClass("text-danger").addClass("text-success").text(data.dht22.temperature);
+                }
+                if (data.dht22.humidity !== "unknown") {
+                    humidity.removeClass("text-danger").addClass("text-success").text(data.dht22.humidity);
+                }
+
+                modalDataSendMsg.modal('hide'); //關閉顯示資料發送中
+            },
+            error: function(jqXHR) {
+                modalDataSendSyncMsg.modal('hide'); //關閉顯示資料發送中
+            }
+        })
+    }
+</script>
+<script type="text/javascript">
+    function countdown(seconds) {
+        let countdown = $('#countdown'); //定義 countdown
+        let timeout;
+
+        seconds++;
+
+        $(function() {
+            timeout = setTimeout(countdownRun, 1000); //執行倒數
+        });
+
+        function countdownRun() {
+            if (seconds === 0) {
+                clearTimeout(timeout); //取消由 setTimeout() 方法設定的 timeout
+            } else {
+                seconds--;
+                countdown.css('width', (seconds * 10) + '%').attr('aria-valuenow', (seconds * 10)).text(seconds + " 秒");
+
+                setTimeout(countdownRun, 1000); //再次執行倒數
+            }
+        }
+    }
+</script>
+</body>
+</html>
